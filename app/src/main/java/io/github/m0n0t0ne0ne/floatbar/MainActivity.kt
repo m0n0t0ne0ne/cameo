@@ -24,6 +24,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -56,6 +57,10 @@ class MainActivity : Activity() {
     private lateinit var adapter: AppAdapter
     private var opacitySeek: SeekBar? = null
     private lateinit var orderList: LinearLayout
+    private lateinit var undoRow: LinearLayout
+    private lateinit var undoText: TextView
+    private var lastRemoved: Pair<Int, ComponentName>? = null
+    private val hideUndo = Runnable { lastRemoved = null; undoRow.visibility = View.GONE }
     private lateinit var barModeStatus: TextView
     private lateinit var barModeRow: LinearLayout
     private lateinit var hideNote: View
@@ -247,9 +252,23 @@ class MainActivity : Activity() {
 
         // Bar order.
         h.addView(section("BAR ORDER"), lp(top = 22f))
-        h.addView(text("Drag \u2261 to rearrange, or use the arrows. The top of the list is the top of the bar.", 12f, muted, Fonts.sans), lp(top = 6f))
+        h.addView(text("Drag \u2261 to rearrange, or use the arrows. Swipe an app left to remove it. The top of the list is the top of the bar.", 12f, muted, Fonts.sans), lp(top = 6f))
         orderList = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         h.addView(orderList, lp(top = 8f))
+        undoRow = row().apply {
+            setPadding(dp(16f), 0, dp(6f), 0)
+            background = GradientDrawable().apply { cornerRadius = dp(14f).toFloat(); setColor(Color.parseColor("#222222")) }
+            visibility = View.GONE
+        }
+        undoText = text("", 14f, fg, Fonts.sans).apply { isSingleLine = true }
+        undoRow.addView(undoText, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        undoRow.addView(text("UNDO", 14f, fg, Fonts.dot).apply {
+            gravity = Gravity.CENTER
+            letterSpacing = 0.12f
+            setPadding(dp(14f), 0, dp(14f), 0)
+            setOnClickListener { undoRemove() }
+        }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        h.addView(undoRow, lp(top = 8f, height = 46f))
 
         // Apps.
         h.addView(section("APPS"), lp(top = 22f))
@@ -389,8 +408,20 @@ class MainActivity : Activity() {
                 LinearLayout.LayoutParams(dp(40f), ViewGroup.LayoutParams.MATCH_PARENT))
             rowV.addView(arrow("\u25BC", "Move down", i < selected.size - 1) { moveApp(i, i + 1) },
                 LinearLayout.LayoutParams(dp(40f), ViewGroup.LayoutParams.MATCH_PARENT))
-            orderList.addView(rowV, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, orderRowH - dp(6f)).apply { topMargin = dp(6f) })
-            attachDrag(handle, rowV, i)
+            // Behind the row: the red "remove" strip that a left swipe uncovers.
+            val cell = FrameLayout(this)
+            cell.addView(text("REMOVE", 13f, Color.WHITE, Fonts.dot).apply {
+                gravity = Gravity.CENTER_VERTICAL or Gravity.END
+                letterSpacing = 0.12f
+                setPadding(0, 0, dp(20f), 0)
+                background = GradientDrawable().apply { cornerRadius = dp(14f).toFloat(); setColor(red) }
+                alpha = 0f
+            }, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+            cell.addView(rowV, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+            rowV.contentDescription = "${entry?.label ?: c.packageName}. Swipe left to remove."
+            orderList.addView(cell, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, orderRowH - dp(6f)).apply { topMargin = dp(6f) })
+            attachDrag(handle, cell, i)
+            attachSwipe(rowV, cell.getChildAt(0), i)
         }
     }
 
@@ -446,6 +477,92 @@ class MainActivity : Activity() {
             }
             true
         }
+    }
+
+    /** Swipe a bar-order row left: past 40% of its width (or flung) it's removed, otherwise it springs back. */
+    @android.annotation.SuppressLint("ClickableViewAccessibility")
+    private fun attachSwipe(rowV: View, behind: View, index: Int) {
+        val slop = android.view.ViewConfiguration.get(this).scaledTouchSlop
+        var downX = 0f
+        var downY = 0f
+        var swiping = false
+        var tracker: android.view.VelocityTracker? = null
+        fun settle(remove: Boolean) {
+            if (remove) {
+                rowV.animate().translationX(-rowV.width.toFloat()).setDuration(160)
+                    .withEndAction { orderList.post { removeApp(index) } }.start()
+            } else {
+                rowV.animate().translationX(0f).setDuration(160).start()
+                behind.animate().alpha(0f).setDuration(160).start()
+            }
+        }
+        rowV.setOnTouchListener { v, e ->
+            when (e.actionMasked) {
+                android.view.MotionEvent.ACTION_DOWN -> {
+                    downX = e.rawX; downY = e.rawY; swiping = false
+                    tracker?.recycle()
+                    tracker = android.view.VelocityTracker.obtain().also { it.addMovement(e) }
+                }
+                android.view.MotionEvent.ACTION_MOVE -> {
+                    tracker?.addMovement(e)
+                    val dx = e.rawX - downX
+                    val dy = e.rawY - downY
+                    if (!swiping && dx < -slop && Math.abs(dx) > Math.abs(dy)) {
+                        swiping = true
+                        v.parent.requestDisallowInterceptTouchEvent(true)
+                    }
+                    if (swiping) {
+                        val tx = (dx + slop).coerceAtMost(0f)
+                        v.translationX = tx
+                        behind.alpha = (-tx / (v.width * 0.4f)).coerceIn(0f, 1f)
+                    }
+                }
+                android.view.MotionEvent.ACTION_UP -> {
+                    if (swiping) {
+                        tracker?.addMovement(e)
+                        tracker?.computeCurrentVelocity(1000)
+                        val vx = tracker?.xVelocity ?: 0f
+                        settle(v.translationX < -v.width * 0.4f || vx < -dp(1200f))
+                    }
+                    tracker?.recycle(); tracker = null
+                    v.parent.requestDisallowInterceptTouchEvent(false)
+                }
+                android.view.MotionEvent.ACTION_CANCEL -> {
+                    if (swiping) settle(false)
+                    tracker?.recycle(); tracker = null
+                }
+            }
+            true
+        }
+    }
+
+    private fun removeApp(index: Int) {
+        if (index !in selected.indices) return
+        val c = selected.removeAt(index)
+        lastRemoved = index to c
+        applyApps()
+        val label = all.firstOrNull { it.component == c }?.label ?: c.packageName
+        undoText.text = "$label removed"
+        undoRow.visibility = View.VISIBLE
+        undoRow.removeCallbacks(hideUndo)
+        undoRow.postDelayed(hideUndo, 6000)
+    }
+
+    private fun undoRemove() {
+        val (index, c) = lastRemoved ?: return
+        undoRow.removeCallbacks(hideUndo)
+        hideUndo.run()
+        if (c !in selected && selected.size < Prefs.MAX_APPS) selected.add(index.coerceAtMost(selected.size), c)
+        applyApps()
+    }
+
+    /** Save the chosen apps, refresh the bar, the order list, the counter and the checkmarks. */
+    private fun applyApps() {
+        prefs.apps = selected.toList()
+        if (prefs.barEnabled) Bar.start(this)
+        updateCounter()
+        renderOrder()
+        adapter.notifyItemRangeChanged(1, shown.size)
     }
 
     private fun moveApp(from: Int, to: Int) {

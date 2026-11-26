@@ -11,6 +11,7 @@ An edge-bar app launcher for Nothing Phone that opens up to 10 apps as floating 
 - With Shizuku: brings a backgrounded app back as a pop-up, clears Nothing's floating bubbles and
   closes apps
 - Icon packs, fonts and bar styling in the settings screen
+- Reorder the dock by dragging; swipe an app left to remove it, with Undo
 - Starts again after a reboot
 
 ## Requirements
