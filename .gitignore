@@ -1,0 +1,29 @@
+# build outputs
+build/
+.gradle/
+.kotlin/
+.cxx/
+captures/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.log
+local.properties
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# device captures and old builds (screenshots, recordings and logs of the phone)
+tools/captures/
+release/
+
+# signing keys and secrets are never published
+*.keystore
+*.jks
+*.keystore.b64
+keystore.properties
+signing.properties
+google-services.json

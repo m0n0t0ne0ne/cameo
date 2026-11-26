@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="a11y_label">Cameo</string>
+    <string name="a11y_summary">Draws the edge bar on top of other apps</string>
+    <string name="a11y_description">Cameo uses this only to draw its edge bar on top of other apps. It does not read your screen.</string>
+</resources>
