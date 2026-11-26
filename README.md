@@ -21,12 +21,24 @@ An edge-bar app launcher for Nothing Phone that opens up to 10 apps as floating 
   used only to draw the bar on top of other apps; it does not read the screen. Without it, Cameo
   falls back to an overlay with a notification.
 
+## Install
+
+1. On your phone, download `Cameo.apk` from the [latest release](https://github.com/m0n0t0ne0ne/cameo/releases/latest) and open it. Allow your browser to install apps if Android asks.
+2. Open Cameo, pick up to ten apps and tap Done.
+3. Turn on Settings › Accessibility › Installed apps › Cameo. If the switch is greyed out ("Restricted
+   setting"), go to Settings › Apps › Cameo › ⋮ › Allow restricted settings first.
+4. Optional: start [Shizuku](https://shizuku.rikka.app/) with Wireless debugging, then tap Allow in
+   Cameo's Shizuku section. Start Shizuku again after each restart.
+
+The [setup guide](https://m0n0t0ne0ne.github.io/cameo/#setup) explains every switch.
+
 ## Build
 
 You need JDK 17+ and an Android SDK with platform 36. Put the SDK path in `local.properties`
-(`sdk.dir=...`), or let Android Studio create it.
+(`sdk.dir=...`), or let Android Studio create it. Release builds are signed with your local
+`~/.android/debug.keystore`, which isn't in this repository.
 
 ```bash
-./gradlew assembleDebug
-adb install -r app/build/outputs/apk/debug/app-debug.apk
+./gradlew assembleRelease
+adb install -r app/build/outputs/apk/release/app-release.apk
 ```

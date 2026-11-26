@@ -71,6 +71,15 @@
   .steps li { counter-increment: s; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px 20px 18px 64px; position: relative; color: #c4c5c9; }
   .steps li::before { content: counter(s); position: absolute; left: 20px; top: 16px; font: 900 24px/1 var(--dot); color: var(--red); }
   .steps b { color: var(--fg); font-weight: 600; }
+  .step-h { font: 700 15px/1.2 var(--dot); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 40px 0 14px; }
+  .steps a, .opt a { color: var(--fg); }
+  .steps i, .opt i { font-style: normal; color: var(--fg); background: #1c1d21; border: 1px solid var(--line); border-radius: 6px; padding: 0 6px; white-space: nowrap; }
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
+  .opt { display: grid; grid-template-columns: 112px 1fr; gap: 14px; align-items: start; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; }
+  .opt b { font-weight: 600; }
+  .opt p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+  .pill { font: 700 11px/1 var(--dot); letter-spacing: .1em; text-transform: uppercase; text-align: center; padding: 7px 6px; border-radius: 999px; border: 1px solid #3a3c42; color: var(--muted); }
+  .pill.on { background: var(--red); border-color: var(--red); color: #fff; }
   pre { background: #0b0c0d; border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; overflow-x: auto; font: 14px/1.6 ui-monospace, Consolas, monospace; color: #e3e3e3; margin: 10px 0 0; }
   code { font-family: ui-monospace, Consolas, monospace; font-size: .92em; }
 
@@ -103,8 +112,9 @@
       <h1>CAMEO<span>.</span></h1>
       <p class="lede">An edge-bar app launcher that opens up to 10 apps as floating pop-up windows.</p>
       <div class="btns">
-        <a class="btn primary" href="#features">See how it works</a>
-        <a class="btn" href="https://github.com/m0n0t0ne0ne/cameo">View on GitHub</a>
+        <a class="btn primary" href="https://github.com/m0n0t0ne0ne/cameo/releases/latest/download/Cameo.apk">Download APK</a>
+        <a class="btn" href="#features">See how it works</a>
+        <a class="btn" href="#setup">Setup guide</a>
       </div>
     </div>
     <div class="phone">
@@ -168,26 +178,60 @@
     <h2>WHAT YOU NEED</h2>
     <p class="sub">Cameo is built around Nothing OS's own pop-up view.</p>
     <div class="grid">
-      <div class="card"><h4>Nothing Phone</h4><p>Nothing OS with the pop-up view feature, on Android 12 (API 31) or newer.</p></div>
-      <div class="card"><h4>Accessibility</h4><p>Turn Cameo on under Settings › Accessibility › Installed apps. It only draws the bar over other apps and never reads the screen. Without it, Cameo uses an overlay and shows a notification.</p></div>
-      <div class="card"><h4>Shizuku <span style="color:var(--muted)">(optional)</span></h4><p>With <a href="https://shizuku.rikka.app/">Shizuku</a> running, pop-ups switch without Nothing bubbles, ✕ closes the app, and − opens it full screen.</p></div>
+      <div class="card"><h4>Nothing Phone</h4><p>Nothing OS with pop-up view, on Android 12 (API 31) or newer. Tested on Nothing OS 5 (Android 17).</p></div>
+      <div class="card"><h4>Accessibility</h4><p>Draws the bar over other apps without a notification. Cameo never reads the screen.</p></div>
+      <div class="card"><h4>Shizuku <span style="color:var(--muted)">(optional)</span></h4><p><a href="https://shizuku.rikka.app/">Shizuku</a> lets Cameo manage pop-ups properly: no Nothing bubbles, and ✕ really closes the app.</p></div>
     </div>
   </section>
 
   <section id="setup">
     <h2>SET IT UP</h2>
-    <p class="sub">Cameo isn't on the Play Store. Build it from source and install it with adb.</p>
+    <p class="sub">Cameo isn't on the Play Store. Download the APK from GitHub and install it on your phone. Setup takes about five minutes, or two without Shizuku.</p>
+
+    <h3 class="step-h">Install</h3>
     <ol class="steps">
-      <li><b>Build the APK.</b> You need JDK 17+ and an Android SDK with platform 36.
+      <li><b>Download the APK on your phone.</b> Tap <a href="https://github.com/m0n0t0ne0ne/cameo/releases/latest/download/Cameo.apk">Download APK</a>, or get it from the <a href="https://github.com/m0n0t0ne0ne/cameo/releases">Releases page</a>.</li>
+      <li><b>Allow your browser to install apps.</b> Open the downloaded file. If Android says installing unknown apps isn't allowed, tap <i>Settings</i>, turn on <i>Allow from this source</i>, then go back.</li>
+      <li><b>Install it.</b> Tap <i>Install</i>. If Play Protect warns about an unrecognised app, tap <i>More details › Install anyway</i>.</li>
+      <li><b>Open Cameo and pick your apps.</b> Choose up to ten, then tap <i>Done</i>. Cameo asks once about notifications. You can say no if you'll use the accessibility service below.</li>
+    </ol>
+
+    <h3 class="step-h">Turn on the bar</h3>
+    <ol class="steps">
+      <li><b>Turn on Cameo's accessibility service.</b> In Cameo, tap <i>Accessibility settings</i>, or go to <i>Settings › Accessibility › Installed apps › Cameo</i>, and switch it on. Cameo's settings should then say <i>Accessibility overlay: on. No notifications.</i></li>
+      <li><b>If the switch is greyed out ("Restricted setting").</b> Android blocks this for apps installed from a download. Go to <i>Settings › Apps › Cameo</i>, tap <i>⋮</i> in the top corner, choose <i>Allow restricted settings</i> and confirm with your PIN. Then go back and turn the service on.</li>
+      <li><b>No accessibility? Use the fallback.</b> Tap <i>Allow "Display over other apps"</i> in Cameo and turn it on for Cameo. The bar works the same, but Android shows a permanent notification. Tap <i>Hide notification</i> in Cameo to switch that notification off.</li>
+    </ol>
+
+    <h3 class="step-h">Connect Shizuku (optional)</h3>
+    <ol class="steps">
+      <li><b>Install Shizuku</b> from the <a href="https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api">Play Store</a> or <a href="https://github.com/RikkaApps/Shizuku/releases">GitHub</a>.</li>
+      <li><b>Turn on Developer options.</b> Go to <i>Settings › About phone</i> and tap <i>Build number</i> seven times. Then turn on <i>Settings › System › Developer options › Wireless debugging</i>. You need to be on Wi-Fi.</li>
+      <li><b>Pair and start Shizuku.</b> In Shizuku, tap <i>Pairing</i> under <i>Start via Wireless debugging</i>. In <i>Wireless debugging</i>, tap <i>Pair device with pairing code</i> and type the code into Shizuku's notification. Then tap <i>Start</i> in Shizuku.</li>
+      <li><b>Let Cameo use it.</b> In Cameo's <i>Shizuku</i> section, tap <i>Allow</i>, then <i>Allow all the time</i>. It should say <i>Connected</i>.</li>
+      <li><b>After a restart.</b> Without root, Shizuku stops whenever the phone restarts. Open Shizuku and tap <i>Start</i> again. Until you do, Cameo keeps working without the Shizuku extras.</li>
+    </ol>
+
+    <h3 class="step-h">Every switch, explained</h3>
+    <div class="opts">
+      <div class="opt"><span class="pill on">On</span><div><b>Accessibility service</b><p>Draws the bar with no notification. Recommended.</p></div></div>
+      <div class="opt"><span class="pill">Only if needed</span><div><b>Display over other apps</b><p>Fallback when the accessibility service is off. Comes with a notification.</p></div></div>
+      <div class="opt"><span class="pill">Only if needed</span><div><b>Allow restricted settings</b><p>Needed only if Android greys out the accessibility switch.</p></div></div>
+      <div class="opt"><span class="pill">Optional</span><div><b>Notifications</b><p>Only used by the fallback overlay mode.</p></div></div>
+      <div class="opt"><span class="pill on">On</span><div><b>Show bar</b><p>The main switch at the top of Cameo's settings.</p></div></div>
+      <div class="opt"><span class="pill">Your choice</span><div><b>Open apps as</b><p><i>Pop-up window</i> or <i>Full screen</i> when you tap an icon.</p></div></div>
+      <div class="opt"><span class="pill">Your choice</span><div><b>Long press</b><p><i>Close app</i>, or open it the other way (full screen or pop-up).</p></div></div>
+      <div class="opt"><span class="pill on">On · Shizuku</span><div><b>✕ closes · − full screen</b><p>On a pop-up from the bar, − opens the app full screen instead of shrinking it into a Nothing bubble, and ✕ really closes it.</p></div></div>
+      <div class="opt"><span class="pill">Off · Shizuku</span><div><b>Smooth background</b><p>Experimental. Hides the home screen's wallpaper jump behind a still image while a pop-up opens.</p></div></div>
+      <div class="opt"><span class="pill">Optional</span><div><b>Wireless debugging</b><p>Used to start Shizuku. Cameo doesn't need it for anything else.</p></div></div>
+    </div>
+
+    <h3 class="step-h">Build it yourself</h3>
+    <p class="sub" style="margin-bottom:0">You need JDK 17+ and an Android SDK with platform 36.</p>
 <pre>git clone https://github.com/m0n0t0ne0ne/cameo.git
 cd cameo
-./gradlew assembleDebug</pre></li>
-      <li><b>Install it on your phone.</b>
-<pre>adb install -r app/build/outputs/apk/debug/app-debug.apk</pre></li>
-      <li><b>Turn on the accessibility service.</b> Settings › Accessibility › Installed apps › Cameo.</li>
-      <li><b>Pick your apps.</b> Open Cameo, choose up to ten apps, and set the colour and icons you want.</li>
-      <li><b>Optional: connect Shizuku.</b> Start Shizuku, then tap <i>Allow</i> in Cameo's Shizuku section.</li>
-    </ol>
+./gradlew assembleRelease
+adb install -r app/build/outputs/apk/release/app-release.apk</pre>
   </section>
 
   <footer>

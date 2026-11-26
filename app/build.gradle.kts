@@ -14,7 +14,12 @@ android {
         versionName = "0.8.0"
     }
     buildTypes {
-        release { isMinifyEnabled = false }
+        release {
+            isMinifyEnabled = false
+            // Signed with the local ~/.android/debug.keystore (not in this repository), like the
+            // debug build, so a release APK installs over an existing copy and keeps its settings.
+            signingConfig = signingConfigs.getByName("debug")
+        }
     }
     buildFeatures {
         aidl = true
