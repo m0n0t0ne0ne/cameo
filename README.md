@@ -2,6 +2,8 @@
 
 An edge-bar app launcher for Nothing Phone that opens up to 10 apps as floating pop-up windows.
 
+**See it in action:** https://m0n0t0ne0ne.github.io/cameo/
+
 ## Features
 
 - A slim bar on the screen edge that expands into up to 10 app shortcuts
