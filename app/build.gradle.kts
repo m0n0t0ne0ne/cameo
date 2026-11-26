@@ -17,8 +17,8 @@ android {
         applicationId = "io.github.m0n0t0ne0ne.floatbar"
         minSdk = 31
         targetSdk = 36
-        versionCode = 20
-        versionName = "0.8.2"
+        versionCode = 21
+        versionName = "0.8.3"
     }
     signingConfigs {
         if (releaseKeyProps.exists()) {

@@ -29,7 +29,8 @@ An edge-bar app launcher for Nothing Phone that opens up to 10 apps as floating 
 3. Turn on Settings › Accessibility › Installed apps › Cameo. If the switch is greyed out ("Restricted
    setting"), go to Settings › Apps › Cameo › ⋮ › Allow restricted settings first.
 4. Optional: start [Shizuku](https://shizuku.rikka.app/) with Wireless debugging, then tap Allow in
-   Cameo's Shizuku section. Start Shizuku again after each restart.
+   Cameo's Shizuku section. Start Shizuku again after each restart. With Shizuku connected, the
+   Remove notifications button under Bar mode turns on Cameo's accessibility service for you.
 
 The [setup guide](https://m0n0t0ne0ne.github.io/cameo/#setup) explains every switch.
 

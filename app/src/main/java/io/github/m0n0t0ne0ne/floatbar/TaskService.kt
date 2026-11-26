@@ -137,6 +137,15 @@ class TaskService : ITaskService.Stub() {
         }
     }
 
+    override fun grantSecureSettings(): Boolean = try {
+        Runtime.getRuntime().exec(arrayOf(
+            "pm", "grant", BuildConfig.APPLICATION_ID, "android.permission.WRITE_SECURE_SETTINGS"
+        )).waitFor() == 0
+    } catch (e: Throwable) {
+        Log.w(TAG, "grantSecureSettings", e)
+        false
+    }
+
     // ------------------------------------------------------------ screen snapshot
 
     /** Raw screencap (16-byte header + RGBA pixels) copied into shared memory for the app. */

@@ -21,6 +21,27 @@ object Bar {
     fun canShow(context: Context) =
         BarAccessibilityService.instance != null || accessibilityEnabled(context) || Settings.canDrawOverlays(context)
 
+    /**
+     * Switch on Cameo's accessibility service directly. Needs WRITE_SECURE_SETTINGS (granted through
+     * Shizuku). Once it connects, the overlay fallback and both of its notifications go away.
+     */
+    fun enableAccessibility(context: Context): Boolean {
+        if (accessibilityEnabled(context)) return true
+        if (context.checkSelfPermission("android.permission.WRITE_SECURE_SETTINGS") !=
+            android.content.pm.PackageManager.PERMISSION_GRANTED) return false
+        return try {
+            val cr = context.contentResolver
+            val current = Settings.Secure.getString(cr, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+                ?.split(':')?.filter { it.isNotBlank() } ?: emptyList()
+            val me = component(context).flattenToString()
+            Settings.Secure.putString(cr, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES, (current + me).joinToString(":"))
+            Settings.Secure.putInt(cr, Settings.Secure.ACCESSIBILITY_ENABLED, 1)
+            true
+        } catch (_: SecurityException) {
+            false
+        }
+    }
+
     fun start(context: Context, expand: Boolean = false) {
         val a11y = BarAccessibilityService.instance
         when {

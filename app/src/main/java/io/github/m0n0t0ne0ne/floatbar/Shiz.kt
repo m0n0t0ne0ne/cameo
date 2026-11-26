@@ -108,6 +108,9 @@ object Shiz {
         runCatching { service?.setBubbleGuard(on) }
     }
 
+    /** Grant Cameo WRITE_SECURE_SETTINGS through the shell service. Call off the main thread. */
+    fun grantSecureSettings(): Boolean = runCatching { service?.grantSecureSettings() == true }.getOrDefault(false)
+
     /** Screen snapshot via the shell service (about 0.1 s), or null. Call off the main thread. */
     fun captureScreen(): android.graphics.Bitmap? {
         val s = service ?: return null

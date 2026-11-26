@@ -66,7 +66,18 @@ class MainActivity : Activity() {
     private lateinit var hideNote: View
     private lateinit var shizukuStatus: TextView
     private lateinit var shizukuRow: LinearLayout
-    private val shizukuListener: () -> Unit = { runOnUiThread { if (::shizukuRow.isInitialized) renderShizuku() } }
+    private val shizukuListener: () -> Unit = {
+        runOnUiThread {
+            if (::shizukuRow.isInitialized) renderShizuku()
+            // "Remove notifications" was waiting for Shizuku: carry on once it's connected.
+            val st = Shiz.state(this)
+            if (pendingRemoveNotes && (st == Shiz.State.CONNECTING || st == Shiz.State.CONNECTED)) {
+                pendingRemoveNotes = false
+                grantAndEnable()
+            }
+        }
+    }
+    private var pendingRemoveNotes = false
 
     private val io = Executors.newSingleThreadExecutor()
 
@@ -182,13 +193,9 @@ class MainActivity : Activity() {
         addChip(barModeRow, chip("Accessibility settings", false) {
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
         })
-        // Fallback mode only: a foreground service must post a notification; this lets the user
-        // switch its channel off (the bar keeps running).
-        hideNote = chip("Hide notification", false) {
-            startActivity(Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
-                .putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
-                .putExtra(Settings.EXTRA_CHANNEL_ID, BarService.CHANNEL))
-        }
+        // Fallback mode only: the overlay posts Cameo's own notification and Android's
+        // "displaying over other apps" one. Switching on the accessibility service removes both.
+        hideNote = chip("Remove notifications", false) { removeNotifications() }
         addChip(barModeRow, hideNote)
         h.addView(barModeRow, lp(top = 10f))
         renderBarMode()
@@ -673,6 +680,54 @@ class MainActivity : Activity() {
             else -> Unit
         }
         shizukuRow.visibility = if (shizukuRow.childCount == 0) View.GONE else View.VISIBLE
+    }
+
+    /**
+     * One tap to get rid of Cameo's notifications: switch on its accessibility service. With Shizuku
+     * Cameo does it itself; without, it opens Accessibility settings at the right place.
+     */
+    private fun removeNotifications() {
+        pendingRemoveNotes = false
+        if (Bar.enableAccessibility(this)) return afterAccessibilityOn()
+        when (Shiz.state(this)) {
+            Shiz.State.CONNECTED, Shiz.State.CONNECTING -> grantAndEnable()
+            Shiz.State.NEEDS_PERMISSION -> {
+                // Carries on from shizukuListener once the user allows Cameo in Shizuku's dialog.
+                pendingRemoveNotes = true
+                Shiz.requestPermission()
+            }
+            else -> openAccessibilitySettings()
+        }
+    }
+
+    /** Through Shizuku: grant WRITE_SECURE_SETTINGS, then switch the accessibility service on. */
+    private fun grantAndEnable() {
+        Shiz.connectIfAllowed()
+        io.execute {
+            // Right after the app starts or Shizuku is allowed, the shell service takes a moment to bind.
+            val until = android.os.SystemClock.uptimeMillis() + 8000
+            while (Shiz.service == null && android.os.SystemClock.uptimeMillis() < until) Thread.sleep(150)
+            var ok = Shiz.grantSecureSettings() && Bar.enableAccessibility(this)
+            if (!ok) {
+                // A shell service left over from the previous version can't grant; let it restart.
+                Thread.sleep(1500)
+                Shiz.connectIfAllowed()
+                ok = Shiz.grantSecureSettings() && Bar.enableAccessibility(this)
+            }
+            android.util.Log.i("Cameo", "remove notifications: service=${Shiz.service != null} ok=$ok")
+            runOnUiThread { if (ok) afterAccessibilityOn() else openAccessibilitySettings() }
+        }
+    }
+
+    private fun afterAccessibilityOn() {
+        android.widget.Toast.makeText(this, "Notifications removed", android.widget.Toast.LENGTH_SHORT).show()
+        // The service takes over the bar (and stops the overlay) as soon as it connects.
+        barModeStatus.postDelayed({ renderBarMode() }, 600)
+    }
+
+    private fun openAccessibilitySettings() {
+        android.widget.Toast.makeText(this, "Turn on Cameo here to remove its notifications", android.widget.Toast.LENGTH_LONG).show()
+        startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
     }
 
     private fun renderBarMode() {

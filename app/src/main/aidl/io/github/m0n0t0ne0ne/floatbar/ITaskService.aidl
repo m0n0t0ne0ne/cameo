@@ -34,4 +34,8 @@ interface ITaskService {
 
     // Snapshot of the screen: {"w": int, "h": int, "mem": SharedMemory with RGBA_8888 pixels}.
     Bundle captureScreen() = 9;
+
+    // Let Cameo itself write secure settings (pm grant WRITE_SECURE_SETTINGS), so it can switch on
+    // its own accessibility service. Returns true when the grant worked.
+    boolean grantSecureSettings() = 10;
 }
