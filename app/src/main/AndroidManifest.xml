@@ -22,8 +22,8 @@
 
     <application
         android:label="Cameo"
-        android:icon="@drawable/ic_launcher"
-        android:roundIcon="@drawable/ic_launcher"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
         android:theme="@style/Theme.Cameo"
         android:supportsRtl="true">
 
