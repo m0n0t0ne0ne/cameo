@@ -35,8 +35,10 @@ The [setup guide](https://m0n0t0ne0ne.github.io/cameo/#setup) explains every swi
 ## Build
 
 You need JDK 17+ and an Android SDK with platform 36. Put the SDK path in `local.properties`
-(`sdk.dir=...`), or let Android Studio create it. Release builds are signed with your local
-`~/.android/debug.keystore`, which isn't in this repository.
+(`sdk.dir=...`), or let Android Studio create it. Release builds are signed with the key named in
+`~/.android/cameo-release.properties` (`storeFile`, `storePassword`, `keyAlias`, `keyPassword`),
+which isn't in this repository. Without that file the release APK comes out unsigned; use
+`./gradlew assembleDebug` for a debug build instead.
 
 ```bash
 ./gradlew assembleRelease

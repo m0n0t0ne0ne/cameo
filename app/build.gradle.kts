@@ -1,6 +1,13 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
 }
+
+// The release key lives outside this public repository, in ~/.android/cameo-release.properties
+// (storeFile, storePassword, keyAlias, keyPassword). Without it, release builds come out unsigned.
+val releaseKeyProps = File(System.getProperty("user.home"), ".android/cameo-release.properties")
+val releaseKey = Properties().apply { if (releaseKeyProps.exists()) releaseKeyProps.inputStream().use { load(it) } }
 
 android {
     namespace = "io.github.m0n0t0ne0ne.floatbar"
@@ -13,12 +20,20 @@ android {
         versionCode = 18
         versionName = "0.8.0"
     }
+    signingConfigs {
+        if (releaseKeyProps.exists()) {
+            create("release") {
+                storeFile = file(releaseKey.getProperty("storeFile"))
+                storePassword = releaseKey.getProperty("storePassword")
+                keyAlias = releaseKey.getProperty("keyAlias")
+                keyPassword = releaseKey.getProperty("keyPassword")
+            }
+        }
+    }
     buildTypes {
         release {
             isMinifyEnabled = false
-            // Signed with the local ~/.android/debug.keystore (not in this repository), like the
-            // debug build, so a release APK installs over an existing copy and keeps its settings.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.findByName("release")
         }
     }
     buildFeatures {
